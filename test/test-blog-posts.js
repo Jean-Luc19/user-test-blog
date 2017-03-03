@@ -181,6 +181,23 @@ describe('blog posts API resource', function() {
           post.author.lastName.should.equal("user");
         });
     });
+    it('should not grant access to a restricted endpoint', function() {
+      //strategy: 1. make post request 2. send bad credentials 3. eval response
+        return chai.request(app)
+          .post('/posts')
+          .auth('user', 'reallyWrongPassWord')
+          .then( res => {
+            res.should.not.exist;
+          })
+          .catch(err => {
+            const res = err.response;
+            res.should.have.status(401);
+
+          })
+
+
+
+    });
   });
 
   describe('PUT endpoint', function() {
