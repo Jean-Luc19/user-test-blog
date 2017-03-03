@@ -117,6 +117,7 @@ app.post('/posts',
       res.status(400).json(
         {error: `Missing "${field}" in request body`});
     }});
+    console.log(`this is the req.user: ${req.user}, and this is the body: ${req.body}`);
 
   BlogPost
     .create({

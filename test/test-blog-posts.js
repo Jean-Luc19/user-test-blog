@@ -70,10 +70,8 @@ describe('blog posts API resource', function() {
   });
 
   beforeEach(function() {
-    Promise.all([seedBlogPostData(), seedAuthUser()])
-    .then(results => {
-      return results;
-    });
+    return Promise.all([seedBlogPostData(), seedAuthUser()]);
+
 });
 
   afterEach(function() {
@@ -100,6 +98,7 @@ describe('blog posts API resource', function() {
       let res;
       return chai.request(app)
         .get('/posts')
+        .auth('user', 'pass')
         .then(_res => {
           res = _res;
           res.should.have.status(200);
@@ -154,11 +153,7 @@ describe('blog posts API resource', function() {
 
       const newPost = {
           title: faker.lorem.sentence(),
-          author: {
-            firstName: faker.name.firstName(),
-            lastName: faker.name.lastName(),
-          },
-          content: faker.lorem.text()
+           content: faker.lorem.text()
       };
 
       return chai.request(app)
@@ -174,16 +169,16 @@ describe('blog posts API resource', function() {
           res.body.title.should.equal(newPost.title);
           // cause Mongo should have created id on insertion
           res.body.id.should.not.be.null;
-          res.body.author.should.equal(
-            `${newPost.author.firstName} ${newPost.author.lastName}`);
+          console.log("this should be: " + res.body.author);
+          res.body.author.should.equal(`joe user`);
           res.body.content.should.equal(newPost.content);
           return BlogPost.findById(res.body.id).exec();
         })
         .then(function(post) {
           post.title.should.equal(newPost.title);
           post.content.should.equal(newPost.content);
-          post.author.firstName.should.equal(newPost.author.firstName);
-          post.author.lastName.should.equal(newPost.author.lastName);
+          post.author.firstName.should.equal("joe");
+          post.author.lastName.should.equal("user");
         });
     });
   });
