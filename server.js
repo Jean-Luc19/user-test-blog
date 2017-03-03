@@ -5,7 +5,7 @@ const passport = require('passport');
 const {BasicStrategy} = require('passport-http');
 const morgan = require('morgan');
 
-const {DATABASE_URL, PORT} = require('./config');
+const {TEST_DATABASE_URL, PORT} = require('./config');
 const {BlogPost, User} = require('./models');
 
 const app = express();
@@ -186,7 +186,7 @@ app.use('*', function(req, res) {
 let server;
 
 // this function connects to our database, then starts the server
-function runServer(databaseUrl=DATABASE_URL, port=PORT) {
+function runServer(databaseUrl=TEST_DATABASE_URL, port=PORT) {
   return new Promise((resolve, reject) => {
     mongoose.connect(databaseUrl, err => {
       if (err) {

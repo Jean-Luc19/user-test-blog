@@ -8,7 +8,7 @@ const mongoose = require('mongoose');
 const should = chai.should();
 
 const {DATABASE_URL} = require('../config');
-const {BlogPost} = require('../models');
+const {BlogPost, User} = require('../models');
 const {closeServer, runServer, app} = require('../server');
 const {TEST_DATABASE_URL} = require('../config');
 
@@ -50,6 +50,18 @@ function seedBlogPostData() {
   return BlogPost.insertMany(seedData);
 }
 
+function seedAuthUser() {
+  console.info('seeding autorized user');
+  return User.create({
+            username: 'user',
+  // Substitute the hash you generated here
+            password: '$2a$10$bhEK7lZYBObrKqgKfhAPzOGEczvWvliCJiLC0T1BfFvEeGmKH0pYu',
+            firstName: faker.name.firstName(),
+            lastName: faker.name.lastName()
+          });
+ };
+
+
 
 describe('blog posts API resource', function() {
 
@@ -58,13 +70,16 @@ describe('blog posts API resource', function() {
   });
 
   beforeEach(function() {
-    return seedBlogPostData();
-  });
+    Promise.all([seedBlogPostData(), seedAuthUser()])
+    .then(results => {
+      return results;
+    });
+});
 
   afterEach(function() {
     // tear down database so we ensure no state from this test
     // effects any coming after.
-    return tearDownDb();
+    //return tearDownDb();
   });
 
   after(function() {
@@ -148,6 +163,7 @@ describe('blog posts API resource', function() {
 
       return chai.request(app)
         .post('/posts')
+        .auth('user', 'pass')
         .send(newPost)
         .then(function(res) {
           res.should.have.status(201);
