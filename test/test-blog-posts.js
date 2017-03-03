@@ -56,8 +56,8 @@ function seedAuthUser() {
             username: 'user',
   // Substitute the hash you generated here
             password: '$2a$10$bhEK7lZYBObrKqgKfhAPzOGEczvWvliCJiLC0T1BfFvEeGmKH0pYu',
-            firstName: faker.name.firstName(),
-            lastName: faker.name.lastName()
+            firstName: "joe",
+            lastName: "user"
           });
  };
 
@@ -79,7 +79,7 @@ describe('blog posts API resource', function() {
   afterEach(function() {
     // tear down database so we ensure no state from this test
     // effects any coming after.
-    //return tearDownDb();
+    return tearDownDb();
   });
 
   after(function() {
