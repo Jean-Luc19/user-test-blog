@@ -194,20 +194,20 @@ describe('blog posts API resource', function() {
       const updateData = {
         title: 'cats cats cats',
         content: 'dogs dogs dogs',
-        author: {
-          firstName: 'foo',
-          lastName: 'bar'
-        }
-      };
 
+      };
+      let authorFirstName;
+      let authorLastName
       return BlogPost
         .findOne()
         .exec()
         .then(post => {
           updateData.id = post.id;
-
+          authorFirstName = post.author.firstName;
+          authorLastName = post.author.lastName;
           return chai.request(app)
             .put(`/posts/${post.id}`)
+            .auth('user', 'pass')
             .send(updateData);
         })
         .then(res => {
@@ -216,7 +216,7 @@ describe('blog posts API resource', function() {
           res.body.should.be.a('object');
           res.body.title.should.equal(updateData.title);
           res.body.author.should.equal(
-            `${updateData.author.firstName} ${updateData.author.lastName}`);
+            `${authorFirstName} ${authorLastName}`);
           res.body.content.should.equal(updateData.content);
 
           return BlogPost.findById(res.body.id).exec();
@@ -224,8 +224,8 @@ describe('blog posts API resource', function() {
         .then(post => {
           post.title.should.equal(updateData.title);
           post.content.should.equal(updateData.content);
-          post.author.firstName.should.equal(updateData.author.firstName);
-          post.author.lastName.should.equal(updateData.author.lastName);
+          post.author.firstName.should.equal(authorFirstName);
+          post.author.lastName.should.equal(authorLastName);
         });
     });
   });
@@ -245,7 +245,9 @@ describe('blog posts API resource', function() {
         .exec()
         .then(_post => {
           post = _post;
-          return chai.request(app).delete(`/posts/${post.id}`);
+          return chai.request(app)
+            .delete(`/posts/${post.id}`)
+            .auth('user', 'pass');
         })
         .then(res => {
           res.should.have.status(204);
@@ -260,4 +262,46 @@ describe('blog posts API resource', function() {
         });
     });
   });
+
+  describe('POST /users endpoint', function() {
+      // strategy
+      // 1. create user obj to post
+      // 2. send user obj with post req
+      // 3. add user to db
+      // 4. prove user was added (compare db to req)
+    it('should add a new user to db', function() {
+      const newUser = {
+        username: "userX",
+        password: "pass",
+        firstName: "jane",
+        lastName: "uzer"
+      };
+      let testUser;
+      return chai.request(app)
+        .post('/users')
+        .send(newUser)
+        .then(res => {
+          testUser = res.body;
+          res.should.have.status(201);
+          res.should.be.json;
+          res.body.should.be.a('object');
+          res.body.should.not.be.null;
+          res.body.username.should.equal(newUser.username);
+          res.body.firstName.should.equal(newUser.firstName);
+          res.body.lastName.should.equal(newUser.lastName);
+          return User
+            .find({username: res.body.username})
+            .exec();
+        })
+        .then(res => {
+          let dbUser = res[0];
+          dbUser.should.be.a('object');
+          dbUser.should.not.be.null;
+          dbUser.username.should.equal(testUser.username);
+          dbUser.firstName.should.equal(testUser.firstName);
+          dbUser.lastName.should.equal(testUser.lastName);
+        })
+    });
+  });
+
 });
